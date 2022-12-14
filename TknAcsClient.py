@@ -71,7 +71,7 @@ def main_menu(default:int=0, *args, **kwargs) -> int:
             ("Configuration menu", conf_menu, args, kwargs),
         ],
         default=default,
-        preamble="Hello {user}".format(
+        preamble="Hello {user}\n".format(
                 user=kwargs['config'].getConfig('/local/user')
             ),
         postamble=kwargs['config'].checkConnect(),
@@ -107,7 +107,7 @@ def client_query_menu(default:int=0, *args, **kwargs) -> int:
                 {   "connector":kwargs['connector']}),
         ],
         default=default,
-        preamble="What can I do for you, {user}?".format(
+        preamble='What can I do for you, {user}?\n'.format(
                 user=kwargs['config'].getConfig('/local/user'),
             ),
         postamble=kwargs['config'].checkConnect(),
@@ -141,8 +141,10 @@ def server_query_menu(default:int=0, *args, **kwargs) -> int:
                 {'interactive':'True'}),
         ],
         default=default,
-        preamble="Last synchronization:{lastSync}".format(
-                lastSync=kwargs['config'].getConfig('/hotp/lastSync')
+        preamble='Last synchronization:{lastSync}\n'
+            'What can I ask for you, {user}?\n'.format(
+                lastSync=kwargs['config'].getConfig('/hotp/lastSync'),
+                user=kwargs['config'].getConfig('/local/user'),
             ),
         postamble=kwargs['config'].checkConnect(),
         *args,
@@ -184,7 +186,9 @@ def conf_menu(default:int=0, *args, **kwargs) -> int:
             ("Set manual configuration",man_conf_menu, args, kwargs),
         ],
         default=default,
-        preamble="User Login:\t{user}\nPSK:\t{psk}\t\tLocal counter value:\t{counter}\nServer host:\t{host}\t\tServer port:\t{port}".format(
+        preamble='User Login:\t{user}\n'
+            'PSK:\t{psk}\t\tLocal counter value:\t{counter}\n'
+            'Server host:\t{host}\t\tServer port:\t{port}'.format(
                 user=kwargs['config'].getConfig('/local/user'),
                 psk= 'OK' if kwargs['config'].getConfig('/hotp/psk') else 'NOT SET',
                 counter=kwargs['config'].getConfig('/hotp/counter'),
@@ -226,7 +230,12 @@ def man_conf_menu(default:int=0, *args, **kwargs) -> int:
             ("Set logging level",
                 kwargs['config'].inputConfig, (), 
                 {   'itemPath':'/local/logging/level',
-                    'inputList':['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                    'inputList':[
+                        'DEBUG',
+                        'INFO',
+                        'WARNING',
+                        'ERROR',
+                        'CRITICAL'],
                 }),
             ("Print all decrypted configuration",
                 displayDict, (),
@@ -235,10 +244,14 @@ def man_conf_menu(default:int=0, *args, **kwargs) -> int:
                 }),
         ],
         default=default,
-        preamble="User Login:\t{user}\nPSK:\t{psk}\nLocal counter value:\t{counter}".format(
+        preamble='User Login:\t{user}\n'
+            'PSK:\t{psk}\t\tLocal counter value:\t{counter}\n'
+            'Server host:\t{host}\t\tServer port:\t{port}'.format(
                 user=kwargs['config'].getConfig('/local/user'),
                 psk= 'OK' if kwargs['config'].getConfig('/hotp/psk') else 'NOT SET',
                 counter=kwargs['config'].getConfig('/hotp/counter'),
+                host=kwargs['config'].getConfig('/server/host'),
+                port=kwargs['config'].getConfig('/server/port'),
             ),
         postamble=kwargs['config'].checkConnect(),
         *args,

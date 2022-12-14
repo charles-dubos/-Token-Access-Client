@@ -109,12 +109,14 @@ class EncryptedConfig():
 
     def _saveConfFile(self):
         """Saves the configuration in encrypted configuration file defined
-        in TKNACS_CLI_CONF.
+        in TKNACS_CLI_CONF local constant.
 
         Args:
             password (str): Local password.
         """
-        assert self.getConfig(itemPath='/local/user') is not None, 'Cannot save to file if user is undefined'
+        assert self.getConfig(itemPath='/local/user'),\
+            'Cannot save to file if user is undefined'
+        
         try:
             logger.info(f'Saving configuration dict to {self._filename}.')
             decrypted = dumps(self.getConfig(itemPath='_configuration'))
@@ -296,7 +298,7 @@ class EncryptedConfig():
             str: The response message.
         """
         if not self.getConfig('/server/host'):
-            return 'NO SERVER CONFIGURED: please set and check server configuration.\n'
+            return 'NO SERVER CONFIGURED: Please set and check server configuration.\n'
         elif not self.getConfig('/hotp/psk'):
             return 'NO PSK SET: please set a PSK to use this service.\n'
         else:
@@ -311,7 +313,7 @@ class EncryptedConfig():
 
         Args:
             connector (TknAcsConnector): A configured connector
-            interactive (bool, optional): If true, displays the results. Defaults to False.
+            interactive (bool, optional): Interactive return. Defaults to False.
         """
         logger.debug(f"Synchronizing {self.getConfig('/local/user')}...")
         serverCounter = connector.getCount()
@@ -381,13 +383,16 @@ class EncryptedConfig():
         self,
         connector,
         interactive=True):
-        """This method creates a new PSK from server and saves it to configuration
+        """This method creates a new PSK from server and saves it to
+        configuration.
 
         Args:
             connector (TknAcsConnector): A network-configured connector
         """
         if interactive:
-            if input('This will reset the server PSK:\nALL PENDING MESSAGES WILL BE LOST!\nType \'yes\' to confirm:') != 'yes':
+            if input('This will reset the server PSK:\n'
+                'ALL PENDING MESSAGES WILL BE LOST!\n'
+                'Type \'yes\' to confirm:') != 'yes':
                 return False
         logger.debug('Generating a new PSK...')
         psk, serverCounter = connector.setNewPsk(
@@ -461,7 +466,7 @@ def configLoader(filename:str) -> EncryptedConfig:
         user = input("User email address: ")
         passwd = resetPass("Local password")
         if passwd is None:
-            raise InvalidToken('A password is needed for the configuration file containing the secrets.')
+            raise InvalidToken('Password needed for the configuration file.')
 
         config = EncryptedConfig(
             filename=filename,
@@ -474,7 +479,8 @@ def configLoader(filename:str) -> EncryptedConfig:
         for chance in range(3,0,-1):
             try:
                 logger.debug(f'Password asked {str(chance)} remaining')
-                passwd = getpass(f"Encryption password ({str(chance)} tests remaining): ")
+                passwd = getpass('Encryption password'
+                    f'({str(chance)} tests remaining): ')
                 config = EncryptedConfig(
                     filename=filename,
                     password=passwd,
@@ -522,7 +528,8 @@ def resetPass(prompt: str='Enter password') -> str:
         if passwd1 == passwd2 and isValidPass(passwd1):
             return passwd1
         else:
-            print(f"[ERROR] Password are differents ({str(i-1)} trials remaining).")
+            print('[ERROR] Password are differents'
+                f'({str(i-1)} trials remaining).')
     return ''
         
 
@@ -563,11 +570,18 @@ def menuHeader(menu:str):
     return menuDecorator
 
 
-def menu(choices:list, default:int=0, preamble='', postamble='', exit:str='Return', *args, **kwargs):
+def menu(
+    choices:list,
+    default:int=0,
+    preamble='',
+    postamble='',
+    exit:str='Return',
+    *args, **kwargs):
     """Common part for menus
 
     Args:
-        choices (list): List of tuples(display:str, command:function, args:tuple, kwargs:dict)
+        choices (list): List of tuples
+            (display:str, command:function, args:tuple, kwargs:dict)
         default (int, optional): Default position of selector. Defaults to 0.
         preamble (str, optional): String to print before menu. Defaults to ''.
         postamble (str, optional): String to print after menu. Defaults to ''.
@@ -576,6 +590,7 @@ def menu(choices:list, default:int=0, preamble='', postamble='', exit:str='Retur
     Returns:
         int: Selected choice in menu
     """
+    
     print(preamble)
     for i,choice in enumerate(choices,start=1):
         print(f"{'>' if i == default else ' '} {str(i)}: {choice[0]}")

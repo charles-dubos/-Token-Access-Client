@@ -110,22 +110,19 @@ class TknAcsConAPI(TknAcsConnector):
 
     def _load(
         self,
-        username:str=None,
-        host:str=None,
-        port:str=None,
-        cert:str=False):
-        if host is not None:
-            logger.debug(f'New connector host: {host}')
-            self.host = host
-        if port is not None:
-            logger.debug(f'New connector port: {port}')
-            self.port = port
-        if username is not None:
-            logger.debug(f'New connector username: {username}')
-            self.username = username
-        if cert:
-            logger.debug(f'New connector server certificate: {cert}')
-            self.cert = cert
+        username:str,
+        host:str,
+        port:str,
+        cert:str):
+        logger.debug(f'Reloading\n'
+            '\tusername: {username}\n'
+            '\thost: {host}\tport: {port}\n'
+            '\tusername: {username}\n'
+            '\tserver certificate: {cert}')
+        self.host = host
+        self.port = port
+        self.username = username
+        self.cert = cert
 
     
     def apiUrl(self)->str:
@@ -134,7 +131,7 @@ class TknAcsConAPI(TknAcsConnector):
         Returns:
             str: The URL string
         """
-        assert self.host is not None, 'Cannot crate url from None host.'
+        assert self.host, 'Cannot crate url from None host.'
         return 'http{ssl}://{host}:{port}/'.format(
             ssl = 's' if self.cert else '',
             host = self.host,
@@ -235,12 +232,14 @@ class TknAcsConAPI(TknAcsConnector):
             if interactive:
                 sender = input("Enter sender name:")
             else:
-                raise ValueError('sender cannot be set to None if not interactive')
+                raise ValueError('sender cannot be None in interactive mode')
         response = get(
-            url=self.apiUrl() + "/" + self.username + '/getAllTokens',
+            url=self.userUrl() + 'getAllTokens',
             params = {
                 'recipient':self.recipient,
-            })
+            },
+            verify=self.cert,
+        )
         if interactive:
             displayDict(
                 dico=response.json()['tokens'],
@@ -269,7 +268,8 @@ class TknAcsConAPI(TknAcsConnector):
                 self.apiUrl() + self.username
             ]:
                 if interactive:
-                    print('\nTesting connection to {url}'.format(url=url), end='\t')
+                    print('\nTesting connection to {url}'.format(url=url),
+                        end='\t')
                 response = get(
                     url=url,
                     verify=self.cert,
@@ -285,9 +285,10 @@ class TknAcsConAPI(TknAcsConnector):
         except Exception as e:
             logger.warning('Test Failed: '+ repr(e))
             if interactive:
-                input('[Failed]\nThe following error occured: {error}\nURL: {url}'.format(
-                    error=repr(e),
-                    url=url,
+                input('[Failed]\n'
+                    'The following error occured: {error}\nURL: {url}'.format(
+                        error=repr(e),
+                        url=url,
                     )
                 )
             return False
@@ -332,17 +333,21 @@ class TknAcsConAPI(TknAcsConnector):
 
 def displayDict(
     dico:dict,
-    emptyMsg:str='Dictionnary is empty',
+    emptyMsg:str='Empty',
     level:int=0,
     confidential:list=[],
+    confidentialMsg:str='***'
     ):
-    """Displays a dictionnary 
+    """Displays a dictionnary with indent depending on depth.
+    Confidential lists the key of values that are not displayed (replaced by 
+    confidentialMsg)
 
     Args:
-        dico (dict): _description_
-        emptyMsg (str, optional): _description_. Defaults to 'Dictionnary is empty'.
-        level (int, optional): _description_. Defaults to 0.
+        dico (dict): A dictionnary to display
+        emptyMsg (str, optional): Message when None. Defaults to 'Empty'.
+        level (int, optional): An indent level. Defaults to 0.
         confidential (list, optionnal): List of keys not to display.
+        confidentialMsg (str, optional): Message when confidential. Defaults to '***'.
     """
     tabulate=''.join('\t' for _ in range(level))
     if len(dico)==0:
@@ -351,7 +356,7 @@ def displayDict(
         for key in dico:
             print(tabulate + f'{key}: ', end='')
             if key in confidential:
-                print( '*' if dico[key] else 'None')
+                print( confidentialMsg if dico[key] else 'None')
             elif isinstance(dico[key], dict):
                 print()
                 displayDict(

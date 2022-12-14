@@ -31,14 +31,18 @@ class PreSharedKey:
 
     def __init__(self, curve:str='x25519',base:str='b64',algorithm:str='SHA256'):
         """Create a structure for ECDH pre-shared key generation (HOTP seed).
+        The curve must be one of cryptography.hazmat.primitives.asymmetric.
+        The base must be one of base64 package
+        The hash algorithm  must be one of cryptography.hazmat.primitives.hashes.
 
         Args:
-            curve (str, optional): An elliptic curve allowed cryptography.hazmat.primitives.asymmetric. Defaults to 'x25519'.
-            base (str, optional): An encoding base allowed by base64. Defaults to 'b64'.
-            algorithm (str, optional): A hashing function allowed by cryptography.hazmat.primitives.hashes. Defaults to 'SHA256'.
+            curve (str, optional): An elliptic curve. Defaults to 'x25519'.
+            base (str, optional): An encoding base. Defaults to 'b64'.
+            algorithm (str, optional): A hashing function. Defaults to 'SHA256'.
         """
 
-        mod = import_module('cryptography.hazmat.primitives.asymmetric.'+ curve.lower())
+        mod = import_module('cryptography.hazmat.primitives.asymmetric.' + \
+            curve.lower())
         self._ECPrivateKey=getattr(mod, curve.capitalize()+"PrivateKey")
         self._ECPublicKey=getattr(mod, curve.capitalize()+"PublicKey")
 
@@ -64,10 +68,13 @@ class PreSharedKey:
 
 
     def generate(self, user:str, recipientPubKey:str) -> str:
-        """Generation of the pre-shared key for a specified user using the public key recieved
+        """Generation of the pre-shared key for a specified user using the
+        public key recieved.
+        The username is not secret but MUST BE THE SAME FOR THE PEOPLE
+        SHARING THE SECRET.
 
         Args:
-            user (str): The user name. MUST BE THE SAME AS RECIPIENT
+            user (str): The user name. 
             recipientPubKey (str): The public key url-encoded.
 
         Returns:
@@ -94,11 +101,13 @@ class HashText:
 
     def __init__(self, plaintext:str, base:str='b64', algorithm:str='SHA256'):
         """Creates a hashText object
+        The base must be one of base64 package
+        The hash algorithm  must be one of cryptography.hazmat.primitives.hashes.
 
         Args:
             plaintext (str): The message to hash
-            base (str, optional): An encoding base allowed by base64. Defaults to 'b64'.
-            algorithm (str, optional): A hashing function allowed by cryptography.hazmat.primitives.hashes. Defaults to 'SHA256'.
+            base (str, optional): An encoding base. Defaults to 'b64'.
+            algorithm (str, optional): A hashing function. Defaults to 'SHA256'.
         """
 
         self._baseEncode=getattr(base64, base+'encode')
@@ -135,14 +144,21 @@ class HashText:
 
 
 # Functions
-def getHotp(preSharedKey: str, count: int, base:str='b64', algorithm:str='SHA256', length:int=6) -> str:
+def getHotp(
+    preSharedKey: str,
+    count: int,
+    base:str='b64',
+    algorithm:str='SHA256',
+    length:int=6) -> str:
     """Compute HOTP with the given arguments
+        The base must be one of base64 package
+        The hash algorithm  must be one of cryptography.hazmat.primitives.hashes.
 
     Args:
         preSharedKey (str): base-encoded pre-shared key
         count (int): Counter
-        base (str, optional): An encoding base allowed by base64. Defaults to 'b64'.
-        algorithm (str, optional): A hashing function allowed by cryptography.hazmat.primitives.hashes. Defaults to 'SHA256'.
+        base (str, optional): An encoding base. Defaults to 'b64'.
+        algorithm (str, optional): A hashing function. Defaults to 'SHA256'.
         length (int, optional): The HOTP length. Defaults to 6.
 
     Returns:
