@@ -357,21 +357,21 @@ class EncryptedConfig():
         if interactive:
             token = input('Token to check:').encode()
 
-        for count in range(start=begin, stop=end):
+        for count in range(begin, end):
             hotp = getHotp(
                 preSharedKey=hotpConf['psk'],
-                count=hotpConf['count'],
+                count=hotpConf['counter'],
                 **ellipticContext,
             )
             if hotp == token:
                 if interactive:
-                    input('Found {token} for counter {count}'.format(
-                        token=token,
+                    input('[OK] Found {token} for counter {count}'.format(
+                        token=token.decode(),
                         count=count,
                     ))
                 return True
         if interactive:
-            input('No {token} found between {begin} and {end}'.format(
+            input('[ERROR] No {token} found between {begin} and {end}'.format(
                 token=token.decode(),
                 begin=begin,
                 end=end,
