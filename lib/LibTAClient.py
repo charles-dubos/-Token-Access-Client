@@ -604,9 +604,16 @@ def menu(
         pass
 
     if default != 0:
-        choices[default-1][1](
-            *(choices[default-1][2]),
-            **(choices[default-1][3]),
-        )
+        try:
+            choices[default-1][1](
+                *(choices[default-1][2]),
+                **(choices[default-1][3]),
+            )
+        except Exception as e:
+            logger.debug(f'"{repr(e)}" occured in menu!')
+            print('Error "{err}" occured when executing [{func}]'.format(
+                err=str(e),
+                func=choices[default-1][1].__name__
+            ))
     
     return default
